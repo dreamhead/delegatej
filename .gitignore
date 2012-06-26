@@ -4,3 +4,9 @@
 *.jar
 *.war
 *.ear
+
+*.ipr
+*.iml
+*.iws
+target
+reports
