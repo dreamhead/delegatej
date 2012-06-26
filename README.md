@@ -40,3 +40,11 @@ It's time to show our **delegatej**
 Executable executable = delegate(Handle.class).to(Executable.class).trait(new Runner());
 executable.execute("dreamhead"); // "hello dreamhead"
 ```
+
+# Build
+
+install [buildr](http://buildr.apache.org/) if you haven't, and then
+
+    $ buildr package
+
+The artifact will be found in target directory.
