@@ -36,7 +36,7 @@ public class Runner {
 ```
 
 It's time to show our **delegatej**
-```
+```java
 Executable executable = delegate(Handle.class).to(Executable.class).trait(new Runner());
 executable.execute("dreamhead"); // "hello dreamhead"
 ```
