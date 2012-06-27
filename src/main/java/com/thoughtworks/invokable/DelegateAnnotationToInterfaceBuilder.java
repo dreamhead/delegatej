@@ -16,26 +16,47 @@ public class DelegateAnnotationToInterfaceBuilder<AnnotationClass extends Annota
         this.interfaceMethod = interfaceClass.getMethods()[0];
     }
 
-    public List<Invoker<AnnotationClass, InterfaceClass>> with(Object target) {
-        List<Invoker<AnnotationClass, InterfaceClass>> invokers = new ArrayList<Invoker<AnnotationClass, InterfaceClass>>();
+    public List<Invoker<AnnotationClass, InterfaceClass>> traitAllWithAnnotation(Object target) {
+        return createInvokers(target, traitAnnotatedMethodsWithNonEmptyCheck(target));
+    }
 
-        for (Method method : traitAnnotatedMethods(target)) {
-            invokers.add(createInvoker(target, method));
-        }
-
-        return invokers;
+    public Invoker<AnnotationClass, InterfaceClass> traitWithAnnotation(Object target) {
+        return createInvoker(target, traitAnnotatedMethodAsSingle(target));
     }
 
     public InterfaceClass trait(Object target) {
-        List<Method> methods = traitAnnotatedMethods(target);
-        checkArgument(methods.size() == 1, "only 1 annotated method target is expected, but it has " + methods.size() + " annotated methods");
-        Invoker<AnnotationClass, InterfaceClass> invoker = createInvoker(target, methods.get(0));
-        return invoker.asInterface();
+        return createInvoker(target, traitAnnotatedMethodAsSingle(target)).asInterface();
+    }
+
+    public List<InterfaceClass> traitAll(Object target) {
+        return traitInterfaceFromMethod(target, traitAnnotatedMethodsWithNonEmptyCheck(target));
+    }
+
+    private Method traitAnnotatedMethodAsSingle(Object target) {
+        return traitAnnotatedMethodsWithNonEmptyCheck(target).get(0);
+    }
+
+    private List<InterfaceClass> traitInterfaceFromMethod(Object target, List<Method> methods) {
+        List<InterfaceClass> results = new ArrayList<InterfaceClass>();
+        for (Method method : methods) {
+            results.add(createInvoker(target, method).asInterface());
+        }
+
+        return results;
     }
 
     private Invoker<AnnotationClass, InterfaceClass> createInvoker(Object target, Method method) {
         checkSignature(method);
         return new Invoker<AnnotationClass, InterfaceClass>(method.getAnnotation(this.annotationClass), this.interfaceClass, target, method);
+    }
+
+    private List<Invoker<AnnotationClass, InterfaceClass>> createInvokers(Object target, List<Method> methods) {
+        List<Invoker<AnnotationClass, InterfaceClass>> invokers = new ArrayList<Invoker<AnnotationClass, InterfaceClass>>();
+        for (Method method : methods) {
+            invokers.add(createInvoker(target, method));
+        }
+
+        return invokers;
     }
 
     private void checkSignature(Method method) {
@@ -65,14 +86,19 @@ public class DelegateAnnotationToInterfaceBuilder<AnnotationClass extends Annota
 
     private List<Method> traitAnnotatedMethods(Object target) {
         List<Method> annotatedMethods = new ArrayList<Method>();
-        Method[] methods = target.getClass().getMethods();
-        for (Method method : methods) {
+        for (Method method : target.getClass().getMethods()) {
             if (method.getAnnotation(this.annotationClass) != null) {
                 annotatedMethods.add(method);
             }
         }
 
         return annotatedMethods;
+    }
+
+    private List<Method> traitAnnotatedMethodsWithNonEmptyCheck(Object target) {
+        List<Method> methods = traitAnnotatedMethods(target);
+        checkArgument(methods.size() > 0, "annotated method on target is expected");
+        return methods;
     }
 
     private void checkArgument(boolean expression, String errorMessage) {
